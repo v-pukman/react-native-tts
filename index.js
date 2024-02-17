@@ -42,6 +42,13 @@ class Tts extends NativeEventEmitter {
     return TextToSpeech.setDefaultEngine(engineName);
   }
 
+  reset() {
+    if (Platform.OS === 'ios' || Platform.OS === 'windows') {
+      return Promise.resolve(true);
+    }
+    return TextToSpeech.reset();
+  }
+
   setDefaultVoice(voiceId) {
     return TextToSpeech.setDefaultVoice(voiceId);
   }

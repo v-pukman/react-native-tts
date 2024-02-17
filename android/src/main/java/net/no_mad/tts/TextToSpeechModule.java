@@ -374,6 +374,27 @@ public class TextToSpeechModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void reset(final Promise promise) {
+        ready = null;
+        onCatalystInstanceDestroy();
+        tts = new TextToSpeech(getReactApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                synchronized(initStatusPromises) {
+                    ready = (status == TextToSpeech.SUCCESS) ? Boolean.TRUE : Boolean.FALSE;
+                    for(Promise p: initStatusPromises) {
+                        resolveReadyPromise(p);
+                    }
+                    initStatusPromises.clear();
+                    promise.resolve(ready);
+                }
+            }
+        });
+
+        setUtteranceProgress();
+    }
+
+    @ReactMethod
     public void engines(Promise promise) {
         if(notReady(promise)) return;
 
@@ -525,7 +546,7 @@ public class TextToSpeechModule extends ReactContextBaseJavaModule {
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(eventName, params);
     }
-    
+
     @ReactMethod
     public void removeListeners(Integer count) {
         // Keep: Required for RN built in Event Emitter Calls.
